@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+
+<!-- Log4j Configuration for RAQeT -->
+<log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/" debug="false">
+
+	<appender name="LogFileAppender" class="org.apache.log4j.RollingFileAppender">
+		<param name="File" value="raqet.log"/>
+		<param name="MaxFileSize" value="1000KB"/>
+		<param name="MaxBackupIndex" value="5"/>
+		<param name="ImmediateFlush" value="true"/>
+		<layout class="org.apache.log4j.PatternLayout"> 
+			<param name="ConversionPattern" value="%d [%t] %-5p %c{1} - %m%n"/> 
+		</layout> 
+	</appender>
+
+	<appender name="Console" class="org.apache.log4j.ConsoleAppender"> 
+		<param name="Target" value="System.out"/> 
+		<layout class="org.apache.log4j.PatternLayout"> 
+			<param name="ConversionPattern" value="%d [%t] %-5p %c{1} - %m%n"/> 
+		</layout> 
+	</appender> 
+
+	<logger name="nl.minvenj.nfi.raqet">
+		<level value="INFO"/>
+	</logger>
+	<logger name="org.alfresco.jlan">
+		<level value="DEBUG"/>
+	</logger>
+
+	<root>
+		<level value="INFO" />
+		<appender-ref ref="LogFileAppender"/>
+		<appender-ref ref="Console"/>
+	</root>
+</log4j:configuration>

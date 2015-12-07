@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<project name="RAQeT" basedir="." default="all" xmlns:jacoco="antlib:org.jacoco.ant">
+	<!-- Include the Ant build file template -->
+	<import file="${basedir}/doc/build/common.xml" />
+
+	<target name="configure" depends="common.configure">
+		<property name="jnadir" location="${basedir}/jna" />
+	</target>
+
+	<!-- Default targets to include -->
+	<target name="all" depends="clean, jarfull" description="Perform a complete build" />
+
+	<target name="compile" depends="configure" description="Compiles the application classes">
+		<echo>${build.libs}</echo>
+		<mkdir dir="${build.classes}" />
+		<defopts.javac srcdir="${srcdir}:${jnadir}" destdir="${build.classes}" classpathref="classpath.common" />
+	</target>
+
+	<target name="jarfull" depends="compile" description="Builds a single JAR for the RAQeT Acquisition Server">
+		<local name="manifest.classpath" />
+		<pathconvert property="manifest.classpath" pathsep=" ">
+			<path refid="classpath.application" />
+			<flattenmapper />
+		</pathconvert>
+
+		<defopts.jar destfile="${build.dir}/${build.jar}">
+			<fileset dir="${build.classes}" excludes="**/package-info.class" />
+			<fileset dir="${srcdir}" excludes="**/*.java" />
+            <fileset dir="${jnadir}" excludes="**/*.java" />
+            <fileset dir="${resourcesdir}" />
+
+			<!-- Include external libraries -->
+			<restrict>
+				<archives>
+					<zips>
+						<fileset dir="${libdir}" includes="${build.libs}" />
+					</zips>
+				</archives>
+			</restrict>
+
+			<manifest>
+				<attribute name="Main-Class" value="org.raqet.Main" />
+				<attribute name="Class-Path" value="${manifest.classpath}" />
+			</manifest>
+		</defopts.jar>
+	</target>
+</project>

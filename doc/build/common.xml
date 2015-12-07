@@ -1,0 +1,362 @@
+<?xml version="1.0"?>
+
+<!--
+  Copyright (c) 2009-2010, 2015, Netherlands Forensic Institute
+  Copyright (c) 2010-2013, Ewald Snel
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are met:
+      * Redistributions of source code must retain the above copyright
+        notice, this list of conditions and the following disclaimer.
+      * Redistributions in binary form must reproduce the above copyright
+        notice, this list of conditions and the following disclaimer in the
+        documentation and/or other materials provided with the distribution.
+      * Neither the name of copyright holders nor the names of its contributors
+        may be used to endorse or promote products derived from this software
+        without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+  ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+  WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY
+  DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+  ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-->
+
+<project name="common">
+	<!--
+		Any project that imports this build file needs to define at least
+		the following properties:
+
+			build.name           Name of the project. Used for naming the JARs.
+			build.version        Version of the project. Used for naming the JARs.
+			build.vendor         The application vendor.
+
+		For applications, the following properties need to be defined:
+
+			build.main-class     Name of class containing the application main() method.
+			build.main-package   Package that contains the application main class.
+
+		And the following is optional for time-limited trial versions:
+
+			build.expirationDate Expire after this date (d-MMM-yyyy, e.g. 1-Jun-2012)
+
+		Additionally, projects may override javac options. The Ant properties
+		"ant.build.javac.source" and "ant.build.javac.target" specify defaults for
+		the javac "source" and "target" attributes respectively:
+
+			build.javac.debug    The javac "debug" option (default: true)
+
+
+		The libraries to include in the classpath of the application JAR,
+		bootstrap JAR and unit tests are defined by comma-separated properties:
+
+			build.libs           The common libraries; used for the application JAR.
+			build.libs.bootstrap The libraries specific for the bootstrap JAR.
+			build.libs.test      The libraries specific for the unit tests.
+
+		The common libraries will be automatically added to the classpaths
+		for the bootstrap JAR and unit tests. Similarly, the bootstrap libraries
+		will be added to the classpath of the unit tests.
+
+
+		Note: These properties are defined in the file "build.properties", which is
+		      loaded by the "configure.properties" task. Override this task if you
+		      wish to specify (some of) these properties in your build file!
+	-->
+
+	<!-- Compile Java sources and generate JARs with default options -->
+
+	<presetdef name="defopts.javac">
+		<javac debug="${build.javac.debug}" includeantruntime="false">
+			<compilerarg value="-Xlint:-options" />
+		</javac>
+	</presetdef>
+	<presetdef name="defopts.jar">
+		<jar duplicate="preserve">
+			<manifest>
+				<attribute name="Vendor" value="${build.vendor}"/>
+				<attribute name="Version" value="${build.version}"/>
+			</manifest>
+		</jar>
+	</presetdef>
+
+<!-- =============== -
+	  Configuration
+  -  =============== -->
+
+	<target name="configure.buildnumber" description="Sets 'build.number' to the Git HEAD revision id">
+		<!-- Set 'build.number' to the short (7 character) hash of the Git HEAD revision id -->
+		<script language="javascript"> <![CDATA[
+			var gitDir = new java.io.File(project.getBaseDir(), ".git");
+			var headRefFile = new java.io.File(gitDir, "HEAD");
+			if (!headRefFile.exists()) {
+				var nooutput=".git does not contain a valid Git repository";
+				project.setProperty("build.number", "00000000");
+			}  else {
+				var headRef = readTextLine(headRefFile);
+				var revision;
+				if (headRef.startsWith("ref: ")) {
+					// 'HEAD' points to a 'ref' file that contains the actual commit hash.
+					revision = readTextLine(new java.io.File(gitDir, headRef.substring(5)));
+				}
+				else {
+					// The repository is in 'detached head' mode. 'HEAD' contains the commit hash itself.
+					revision = headRef;
+				}
+
+				project.setProperty("build.number", revision.substring(0, 7));
+			}
+
+
+			function readTextLine(file) {
+				var reader = new java.io.BufferedReader(new java.io.FileReader(file));
+				try {
+					return reader.readLine();
+				}
+				finally {
+					reader.close();
+				}
+			}
+		]]></script>
+	</target>
+
+	<target name="configure.properties" depends="configure.buildnumber" description="Include default property files">
+		<property file="${basedir}/lib/dependencies.properties" />
+		<property file="${basedir}/build.properties" />
+	</target>
+
+	<target name="configure" depends="configure.properties" description="Configure build properties">
+		<!-- Check for mandatory properties -->
+		<fail unless="build.name">Property 'build.name' not set!</fail>
+		<fail unless="build.version">Property 'build.version' not set!</fail>
+		<fail unless="build.vendor">Property 'build.vendor' not set!</fail>
+
+		<!-- Build properties -->
+		<property name="build.dir" location="${basedir}/dist" />
+		<property name="build.manifest-file" value="${build.name}.mf" />
+		<property name="build.jar" value="${build.name}-${build.version}.jar" />
+		<property name="build.bootstrap-jar" value="${build.name}-${build.version}-bootstrap.jar" />
+		<property name="build.src-jar" value="${build.name}-${build.version}-sources.jar" />
+		<property name="build.doc-jar" value="${build.name}-${build.version}-javadoc.jar" />
+		<property name="build.classes" location="${build.dir}/classes" />
+		<property name="build.bootstrap" location="${build.dir}/bootstrap" />
+		<property name="build.test" location="${build.dir}/test" />
+		<property name="build.report" location="${build.dir}/report" />
+		<property name="build.doc" location="${build.dir}/doc" />
+		<!-- javac options (defaults) -->
+		<property name="build.javac.debug" value="true" />
+		<!-- Expiration date (default) -->
+		<property name="build.expirationDate" value="" />
+
+		<!-- Source directories -->
+		<property name="srcdir" location="${basedir}/src" />
+		<property name="resourcesdir" location="${basedir}/resources" />
+		<property name="bootstrapdir" location="${basedir}/bootstrap" />
+		<property name="testdir" location="${basedir}/test" />
+		<property name="libdir" location="${basedir}/lib" />
+		<property name="toolsdir" location="${basedir}/tools" />
+
+		<available file="${bootstrapdir}" type="dir" property="bootstrap.exists" />
+
+		<!-- Sets default classpaths (in case they were not set) -->
+		<property name="build.libs" value="" />
+		<property name="build.libs.bootstrap" value="" />
+		<property name="build.libs.test" value="" />
+		<property name="build.libs.undefined" value="dummy.file.avoids.inclusion.of.entire.directory" />
+
+		<!-- Build classpaths from patternset references -->
+		<path id="classpath.common">
+			<fileset dir="${libdir}" includes="${build.libs}">
+				<include name="${build.libs.undefined}" />
+			</fileset>
+		</path>
+		<path id="classpath.bootstrap">
+			<path refid="classpath.common" />
+			<pathelement path="${build.classes}" />
+            <pathelement path="${resourcesdir}" />
+			<fileset dir="${libdir}" includes="${build.libs.bootstrap}">
+				<include name="${build.libs.undefined}" />
+			</fileset>
+		</path>
+		<path id="classpath.application">
+			<path refid="classpath.common" />
+			<fileset dir="${libdir}" includes="${build.libs.bootstrap}">
+				<include name="${build.libs.undefined}" />
+			</fileset>
+		</path>
+		<path id="classpath.test">
+			<path refid="classpath.bootstrap" />
+			<pathelement path="${build.bootstrap}" />
+			<fileset dir="${libdir}" includes="${build.libs.test}">
+				<include name="${build.libs.undefined}" />
+			</fileset>
+		</path>
+		<path id="classpath.testrunner">
+			<path refid="classpath.test" />
+			<pathelement path="${build.test}" />
+		</path>
+		<path id="classpath.tools">
+			<fileset dir="${toolsdir}" includes="${build.libs.tools}">
+				<include name="${build.libs.undefined}" />
+			</fileset>
+		</path>
+		<patternset id="pattern.testclasses">
+			<include name="**/*Stories.class" />
+			<include name="**/*Test.class" />
+			<include name="**/*Test$$*.class" />
+			<!-- exclude anonymous inner classes -->
+			<exclude name="**/*$$1*.class" />
+			<exclude name="**/*$$2*.class" />
+			<exclude name="**/*$$3*.class" />
+			<exclude name="**/*$$4*.class" />
+			<exclude name="**/*$$5*.class" />
+			<exclude name="**/*$$6*.class" />
+			<exclude name="**/*$$7*.class" />
+			<exclude name="**/*$$8*.class" />
+			<exclude name="**/*$$9*.class" />
+			<!-- exclude mock objects -->
+			<exclude name="**/*Mock*.class" />
+		</patternset>
+	</target>
+
+<!-- ===================== -
+	  Compile and Package
+  -  ===================== -->
+
+	<target name="clean" depends="configure" description="Clean the results of any previous build">
+		<delete dir="${build.dir}" quiet="true" />
+	</target>
+
+	<target name="compile" depends="configure" description="Compiles the application classes">
+		<mkdir dir="${build.classes}" />
+		<defopts.javac srcdir="${srcdir}" destdir="${build.classes}" classpathref="classpath.common" />
+	</target>
+
+	<target name="compile.bootstrap" depends="configure, compile" description="Compiles the bootstrap configuration for use with JEDI" if="bootstrap.exists">
+		<mkdir dir="${build.bootstrap}" />
+		<defopts.javac srcdir="${bootstrapdir}" destdir="${build.bootstrap}" classpathref="classpath.bootstrap" />
+	</target>
+
+	<target name="compile.test" depends="configure, compile, compile.bootstrap" description="Compiles the test classes for this project">
+		<mkdir dir="${build.test}" />
+		<defopts.javac srcdir="${testdir}" destdir="${build.test}" classpathref="classpath.test" />
+		<!-- Copy test data -->
+		<copy todir="${build.test}">
+			<fileset dir="${testdir}" excludes="**/*.java, **/package.html" />
+		</copy>
+	</target>
+
+	<target name="javadoc" depends="configure" description="Builds the HTML documentation">
+		<mkdir dir="${build.doc}" />
+
+		<javadoc access="protected" destdir="${build.doc}" nodeprecated="true" source="${ant.build.javac.source}">
+			<packageset dir="${srcdir}" defaultexcludes="yes" />
+			<classpath refid="classpath.common" />
+		</javadoc>
+	</target>
+
+	<target name="dummy" depends="configure">
+		<echo>X${build.expirationDate}Y</echo>
+	</target>
+
+	<!-- Optional, for application JARs only! -->
+	<target name="manifest.application" depends="configure" description="Generates manifest file for an application JAR" if="build.main-class">
+		<copy file="${srcdir}/${build.main-package}/application.properties" todir="${build.classes}/${build.main-package}" />
+		<propertyfile file="${build.classes}/${build.main-package}/${application.properties}">
+			<entry key="${build.main-class}.version" value="${build.version}" />
+			<entry key="${build.main-class}.expirationDate" value="${build.expirationDate}" />
+		</propertyfile>
+
+		<local name="manifest.classpath" />
+		<pathconvert property="manifest.classpath" pathsep=" ">
+			<path refid="classpath.application" />
+			<flattenmapper />
+		</pathconvert>
+
+		<manifest file="${build.dir}/${build.manifest-file}">
+			<attribute name="Main-Class" value="${build.main-class}" />
+			<attribute name="Class-Path" value="${manifest.classpath}" />
+		</manifest>
+	</target>
+
+	<target name="manifest.empty" depends="configure" description="Generates an empty manifest file" unless="build.main-class">
+		<manifest file="${build.dir}/${build.manifest-file}" />
+	</target>
+
+	<target name="jar" depends="configure, compile, manifest.application, manifest.empty" description="Builds the library JAR">
+		<defopts.jar destfile="${build.dir}/${build.jar}" manifest="${build.dir}/${build.manifest-file}">
+			<fileset dir="${build.classes}" excludes="**/package-info.class" />
+			<fileset dir="${srcdir}" excludes="**/*.java" />
+			<fileset dir="${resourcesdir}" />
+		</defopts.jar>
+	</target>
+
+	<target name="bootstrap-jar" depends="configure, compile.bootstrap" description="Builds the bootstrap JAR for use with JEDI">
+		<defopts.jar destfile="${build.dir}/${build.bootstrap-jar}">
+			<fileset dir="${build.bootstrap}" excludes="**/package-info.class" />
+			<fileset dir="${bootstrapdir}" excludes="**/*.java" />
+		</defopts.jar>
+	</target>
+
+	<target name="src-jar" depends="configure" description="Builds the source JAR">
+		<mkdir dir="${build.dir}" />
+
+		<defopts.jar destfile="${build.dir}/${build.src-jar}">
+			<fileset dir="${srcdir}" excludes="**/package-info.java" />
+			<fileset dir="${bootstrapdir}" excludes="**/package-info.java" erroronmissingdir="false" />
+		</defopts.jar>
+	</target>
+
+	<target name="doc-jar" depends="configure, javadoc" description="Builds the documentation JAR">
+		<defopts.jar destfile="${build.dir}/${build.doc-jar}">
+			<fileset dir="${build.doc}" />
+		</defopts.jar>
+	</target>
+
+<!-- ============== -
+	  Test targets
+   - ============== -->
+
+	<extension-point name="test" description="Run the unit tests for this project" />
+
+	<target name="test.without-coverage" depends="compile.test" description="Run unit tests without code coverage" unless="build.enable-codecoverage" extensionOf="test">
+		<junit printsummary="yes" haltonfailure="no" fork="yes" forkmode="once" dir="${build.test}">
+    <!-- ====================
+            <jvmarg value="-Xdebug" />
+            <jvmarg value="-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5432" />
+         ==================== -->
+			<formatter type="xml" />
+			<classpath refid="classpath.testrunner" />
+			<batchtest todir="${build.test}">
+				<fileset dir="${build.test}">
+					<patternset refid="pattern.testclasses" />
+				</fileset>
+			</batchtest>
+		</junit>
+	</target>
+
+<!-- ============================================== -
+	  Reports: Test, Code Coverage and Check Style
+  -  ============================================== -->
+
+	<target name="testreport" depends="configure, test" description="Generate a test report">
+		<mkdir dir="${build.report}/test" />
+		<junitreport todir="${build.report}">
+			<fileset dir="${build.test}" includes="TEST-*.xml" />
+			<report todir="${build.report}/test">
+				<param name="TITLE" expression="Unit Test Results for ${ant.project.name} ${build.version}" />
+			</report>
+		</junitreport>
+	</target>
+
+<!-- ============================= -
+	  Ivy (dependency management)
+  -  ============================= -->
+
+</project>

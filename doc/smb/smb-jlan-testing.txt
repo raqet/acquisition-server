@@ -1,0 +1,5 @@
+Starting the RaQET backend:
+   sudo java -cp bin/:lib/alfresco-core-5.0.d/alfresco-core-5.0.d.jar:lib/alfresco-jlan-embed-5.0.d/alfresco-jlan-embed-5.0.d.jar:lib/spring-surf-core-configservice-5.0.d/spring-surf-core-configservice-5.0.d.jar:lib/reifier-0.1.13/reifier-0.1.13.jar:lib/log4j-1.2.16/log4j-1.2.16.jar:lib/streams-core-2.1.2/streams-core-2.1.2.jar:lib/jna-4.1.0/jna-4.1.0.jar:lib/jna-platform-4.1.0/jna-platform-4.1.0.jar nl.minvenj.nfi.raqet.Main
+
+Testing the SMB server:
+   smbclient --no-pass -I 127.0.0.1 //RAQETDOMAIN/DDSHARE

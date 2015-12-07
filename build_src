@@ -1,0 +1,4 @@
+#!/bin/sh
+ant clean
+tar --exclude .git --exclude debian -czf ../raqetserver_0.1.orig.tar.gz . -R
+dpkg-buildpackage -S

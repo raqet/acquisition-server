@@ -1,0 +1,20 @@
+Source: raqetserver
+Section: java
+Priority: optional
+Maintainer: Ruud Schramp <schramp@holmes.nl>
+Build-Depends: debhelper (>= 7.0.50~), javahelper (>=0.32~)
+Build-Depends-Indep: openjdk-7-jdk, fastjar, openjdk-7-doc, ant
+Standards-Version: 0.0.1
+Homepage: http://www.nederlandsforensischinstituut.nl/
+
+Package: raqetserver
+Architecture: all
+Depends: ${java:Depends}, ${misc:Depends}, raqetclient (>=0.1), libiscsi1 (>=1.15.1-1)
+Recommends: ${java:Recommends}
+Description: Server for automated forensic acquisition and triage of remote clients
+ This server will offer a webinterface that can be used to generate a client. This is an
+ acquisition OS (PXE config, Disk-image or ISO) that will backconnect to this server. 
+ The server allow remote inspection and acquisition of the data on the clients.
+ This system focusses on acquistion of fysical remote systems but can also be used on IAAS systems. It assumes
+ the remote systems will be rebooted.
+

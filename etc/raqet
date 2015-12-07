@@ -1,0 +1,46 @@
+#! /bin/sh
+### BEGIN INIT INFO
+# Provides:          raqet
+# Required-Start:    $syslog $time $remote_fs
+# Required-Stop:     $syslog $time $remote_fs
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Raqet
+# Description:       Debian init script for Raqet
+### END INIT INFO
+
+PATH=/bin:/usr/bin:/sbin:/usr/sbin
+DAEMON=/usr/bin/java
+DAEMONARGS='-jar /usr/share/java/raqet-0.0.x-00000000.jar'
+PIDFILE=/var/run/raqet.pid
+
+test -x $DAEMON || exit 0
+
+. /lib/lsb/init-functions
+
+case "$1" in
+  start)
+    log_daemon_msg "Starting Raqet" "raqet"
+        mkdir -p /var/log/raqet/
+        start-stop-daemon --start --quiet --chdir /var/log/raqet/ --make-pidfile --pidfile $PIDFILE --background --exec $DAEMON -- $DAEMONARGS
+    log_end_msg $?
+    ;;
+  stop)
+    log_daemon_msg "Stopping Raqet" "raqet"
+        start-stop-daemon --stop --quiet --oknodo --pidfile $PIDFILE
+    log_end_msg $?
+    ;;
+  force-reload|restart)
+    $0 stop
+    $0 start
+    ;;
+  status)
+    status_of_proc -p $PIDFILE $DAEMON raqet && exit 0 || exit $?
+    ;;
+  *)
+    echo "Usage: /etc/init.d/raqet {start|stop|restart|force-reload|status}"
+    exit 1
+    ;;
+esac
+
+exit 0

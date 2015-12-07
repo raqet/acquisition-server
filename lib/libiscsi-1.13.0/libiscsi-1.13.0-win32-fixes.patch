@@ -1,0 +1,107 @@
+diff -ur libiscsi-1.13.0/lib/pdu.c libiscsi-1.13.0-patched/lib/pdu.c
+--- libiscsi-1.13.0/lib/pdu.c	2014-12-21 23:58:46.000000000 +0100
++++ libiscsi-1.13.0-patched/lib/pdu.c	2015-04-17 09:29:52.000000000 +0200
+@@ -28,6 +28,7 @@
+ 
+ #if defined(WIN32)
+ #include <winsock2.h>
++#include "win32/win32_compat.h"
+ #else
+ #include <strings.h>
+ #endif
+@@ -84,11 +85,13 @@
+ }
+ 
+ void iscsi_adjust_maxexpcmdsn(struct iscsi_context *iscsi, struct iscsi_in_pdu *in) {
+-	uint32_t maxcmdsn = scsi_get_uint32(&in->hdr[32]);
++	uint32_t maxcmdsn;
++	uint32_t expcmdsn;
++	maxcmdsn = scsi_get_uint32(&in->hdr[32]);
+ 	if (iscsi_serial32_compare(maxcmdsn, iscsi->maxcmdsn) > 0) {
+ 		iscsi->maxcmdsn = maxcmdsn;
+ 	}
+-	uint32_t expcmdsn = scsi_get_uint32(&in->hdr[28]);
++	expcmdsn = scsi_get_uint32(&in->hdr[28]);
+ 	if (iscsi_serial32_compare(expcmdsn, iscsi->expcmdsn) > 0) {
+ 		iscsi->expcmdsn = expcmdsn;
+ 	}
+diff -ur libiscsi-1.13.0/lib/scsi-lowlevel.c libiscsi-1.13.0-patched/lib/scsi-lowlevel.c
+--- libiscsi-1.13.0/lib/scsi-lowlevel.c	2014-12-21 23:58:46.000000000 +0100
++++ libiscsi-1.13.0-patched/lib/scsi-lowlevel.c	2015-04-17 09:27:42.000000000 +0200
+@@ -44,7 +44,10 @@
+ #include <strings.h>
+ #endif
+ 
++#if !defined(WIN32)
+ #include <sys/socket.h>
++#endif
++
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <stddef.h>
+diff -ur libiscsi-1.13.0/lib/socket.c libiscsi-1.13.0-patched/lib/socket.c
+--- libiscsi-1.13.0/lib/socket.c	2014-12-21 23:58:46.000000000 +0100
++++ libiscsi-1.13.0-patched/lib/socket.c	2015-04-17 09:27:28.000000000 +0200
+@@ -57,7 +57,10 @@
+ #include <sys/filio.h>
+ #endif
+ 
++#if !defined(WIN32)
+ #include <sys/uio.h>
++#endif
++
+ #include <stdint.h>
+ #include <stdio.h>
+ #include <stdlib.h>
+@@ -413,6 +416,12 @@
+ ssize_t
+ iscsi_iovector_readv_writev(struct iscsi_context *iscsi, struct scsi_iovector *iovector, uint32_t pos, ssize_t count, int do_write)
+ {
++	struct scsi_iovec *iov;
++	struct scsi_iovec *iov2;
++	int niov;
++	uint32_t len2;
++	size_t _len2;
++	ssize_t n;
+ 	if (iovector->iov == NULL) {
+ 		errno = EINVAL;
+ 		return -1;
+@@ -433,7 +442,7 @@
+ 	}
+ 
+ 	/* iov is a pointer to the first iovec to pass */
+-	struct scsi_iovec *iov = &iovector->iov[iovector->consumed];
++	iov = &iovector->iov[iovector->consumed];
+ 	pos -= iovector->offset;
+ 
+ 	/* forward until iov points to the first iov to pass */
+@@ -449,10 +458,10 @@
+ 	}
+ 
+ 	/* iov2 is a pointer to the last iovec to pass */
+-	struct scsi_iovec *iov2 = iov;
++	iov2 = iov;
+ 
+-	int niov=1; /* number of iovectors to pass */
+-	uint32_t len2 = pos + count; /* adjust length of iov2 */
++	niov=1; /* number of iovectors to pass */
++	len2 = pos + count; /* adjust length of iov2 */
+ 	
+ 	/* forward until iov2 points to the last iovec we pass later. it might
+ 	   happen that we have a lot of iovectors but are limited by count */
+@@ -468,14 +477,13 @@
+ 
+ 	/* we might limit the length of the last iovec we pass to readv/writev
+ 	   store its orignal length to restore it later */
+-	size_t _len2 = iov2->iov_len;
++	_len2 = iov2->iov_len;
+ 
+ 	/* adjust base+len of start iovec and len of last iovec */
+ 	iov2->iov_len = len2;
+ 	iov->iov_base = (void*) ((uintptr_t)iov->iov_base + pos);
+ 	iov->iov_len -= pos;
+ 
+-	ssize_t n;
+ 	if (do_write) {
+ 		n = writev(iscsi->fd, (struct iovec*) iov, niov);
+ 	} else {

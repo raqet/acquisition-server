@@ -1,0 +1,23 @@
+<table class="table casetable">
+  <tr>
+    <td><h3>Details for {{computer.computername}}</h3></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>Computer Name</td>
+    <td>{{computer.computername}}</td>
+  </tr>
+  <tr>
+    <td>Pathname</td>
+    <td>{{computer.urlcomputername}}</td>
+  </tr>
+  <tr>
+    <td>Client ID</td>
+    <td>{{computer.clientid}}</td>
+  </tr>
+  <tr>
+    <td>
+        <a class="btn btn-primary" ng-href="/remotes/json/cases/{{caseobject.urlcasename}}/computers/{{computer.urlcomputername}}/acquisitionsystem">Download ISO</a>
+    </td>
+  </tr>
+</table>

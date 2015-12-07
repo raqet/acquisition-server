@@ -1,0 +1,15 @@
+Create an empty 8GB file for the iSCSI target
+  dd if=/dev/zero of=/var/tmp/iscsi-disk1 bs=1M count=8000
+  sudo semanage fcontext -a -t tgtd_var_lib_t /var/tmp/iscsi-disk1
+  sudo restorecon -Rv  /var/tmp/iscsi-disk1
+
+Start the tgt daemon
+  sudo service tgtd start
+
+Create the iSCSI target using tgt
+  sudo tgtadm --lld iscsi --mode target --op new --tid=1 --targetname iqn.2015-04.nl.minvenj.nfi:testdisk1
+  sudo tgtadm --lld iscsi --mode logicalunit --op new --tid 1 --lun 1 -b /var/tmp/iscsi-disk1
+  sudo tgtadm --lld iscsi --mode target --op bind --tid 1 -I ALL
+  sudo tgtadm --lld iscsi --mode account --op new --user ''ewald'' --password ''123iscsi''
+  sudo tgtadm --lld iscsi --mode account --op bind --tid 1 --user ''ewald''
+  sudo tgtadm --lld iscsi --mode target --op show

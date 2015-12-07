@@ -1,0 +1,34 @@
+<a ui-sref="newComputer({casename:caseobject.urlcasename})" class="btn-primary btn-lg nodecoration">Add New Computer</a>
+<table class="table casetable">
+  <tr>
+    <td><h3>Details for {{caseobject.casename}}</h3></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>Case Name</td>
+    <td>{{caseobject.casename}}</td>
+  </tr>
+  <tr>
+    <td>Pathname </td>
+    <td>{{caseobject.urlcasename}}</td>
+  </tr>
+</table>
+<div>
+  <a class="btn btn-primary" ui-sref="editCase({casename:caseobject.urlcasename})">Edit</a>
+</div>
+
+
+<table class="table casetable">
+  <tr>
+    <td><h3>Computers for {{caseobject.casename}}</h3></td>
+    <td></td>
+  </tr>
+  <tr ng-repeat="computer in computers">
+    <td>{{computer.computername}}</td>
+    <td>
+      <a class="btn btn-primary" ui-sref="viewComputer({casename:caseobject.urlcasename , computername:computer.urlcomputername})">View</a>
+      <a class="btn btn-danger"  ng-click="deleteComputer(caseobject)">Delete</a>
+    </td>
+  </tr>
+</table>
+

@@ -1,0 +1,15 @@
+<a ui-sref="newCase" class="btn-primary btn-lg nodecoration">Add New Case</a>
+
+<table class="table casetable">
+  <tr>
+    <td><h3>All Cases</h3></td>
+    <td></td>
+  </tr>
+  <tr ng-repeat="caseobject in cases">
+    <td>{{caseobject.casename}}</td>
+    <td>
+      <a class="btn btn-primary" ui-sref="viewCase({casename:caseobject.urlcasename})">View</a>
+      <a class="btn btn-danger"  ng-click="deleteCase(caseobject)">Delete</a>
+    </td>
+  </tr>
+</table>
