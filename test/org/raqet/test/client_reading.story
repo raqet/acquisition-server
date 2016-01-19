@@ -11,7 +11,7 @@ Scenario: Client registers with server
 
 Given the acquisition server is running
 Given the client is configured for case defaultcase
-Given the client is configured for computer testingclient_40a628a27c904a9f6ca60b332d59aa63
+Given the client is configured for computer testingclient_e31c59cc9c15c72e3f37fb1e31630440
 
 When a new client with name testingclient is started
 Then the 3 disks of testingclient are exported on a SMB share within 30 seconds
