@@ -5,7 +5,7 @@ Maintainer: Ruud Schramp <schramp@holmes.nl>
 Build-Depends: debhelper (>= 7.0.50~), javahelper (>=0.32~)
 Build-Depends-Indep: openjdk-7-jdk, fastjar, openjdk-7-doc, ant
 Standards-Version: 0.0.1
-Homepage: http://www.nederlandsforensischinstituut.nl/
+Homepage: http://www.raqet.org/
 
 Package: raqetserver
 Architecture: all

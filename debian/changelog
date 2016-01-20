@@ -1,3 +1,10 @@
+raqetserver (0.1.1) unstable; urgency=medium
+
+  * Bugfixes
+
+
+ -- Ruud Schramp <schramp@holmes.nl>  Wed, 20 Jan 2016 10:47:45 +0100
+
 raqetserver (0.1) unstable; urgency=low
 
   * initial version
