@@ -323,7 +323,7 @@ public class RaqetControl {
 
         final ProcessBuilder pb = new ProcessBuilder("raqet", "-p", _osPassword,
                                                      "--clientid", clientID,
-                                                     "--server", "http://" + _serverIPAddress,
+                                                     "--server", "http://" + _serverIPAddress + ":5555",
                                                      "--output", path,
                                                      "--target", "iso",
                                                      "--plainiscsiinitiator", _serverIPAddress + "/32"
