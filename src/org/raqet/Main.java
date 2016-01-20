@@ -19,7 +19,10 @@ import org.alfresco.jlan.smb.server.SMBServer;
 import org.apache.log4j.Logger;
 import org.apache.log4j.xml.DOMConfigurator;
 import org.glassfish.grizzly.http.server.CLStaticHttpHandler;
+import org.glassfish.grizzly.http.server.HttpHandler;
 import org.glassfish.grizzly.http.server.HttpServer;
+import org.glassfish.grizzly.http.server.Request;
+import org.glassfish.grizzly.http.server.Response;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.raqet.clientapi.AcquisitionClientApi;
@@ -146,8 +149,16 @@ public final class Main {
         final ResourceConfig config = new ResourceConfig().register(RaqetService.class).register(new RaqetBinder(_raqetControll));
         final CLStaticHttpHandler staticHttpHandler = new CLStaticHttpHandler(this.getClass().getClassLoader(), "/static/");
 
+
         _httpManagementServer = GrizzlyHttpServerFactory.createHttpServer(URI.create(httpManagementServerUrl), config);
         _httpManagementServer.getServerConfiguration().addHttpHandler(staticHttpHandler, "/gui/");
+        /* Redirect users to the GUI */
+        _httpManagementServer.getServerConfiguration().addHttpHandler(new HttpHandler() {
+            @Override
+            public void service(final Request request, final Response response) throws Exception {
+                response.sendRedirect("/gui/");
+            }
+        }, "/index.html");
         _httpManagementServer.start();
     }
 
