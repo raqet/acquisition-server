@@ -67,9 +67,25 @@ public final class Main {
         final String serverIPAddress = _properties.getProperty("serverip", machineIP + ":5555");
         final String evidenceDirectory = _properties.getProperty("evidencedirectory", EVIDENCE_DIRECTORY);
         final String initiatorName = _properties.getProperty("initiatorname", INITIATOR_NAME);
+
+        final String vPNserverIPAddress = _properties.getProperty("vpnserveripaddress", "");
+        final String vPNserversubnet = _properties.getProperty("vpnserversubnet", "");
+        final String vPNclientUser = _properties.getProperty("vpnclientuser", "");
+        final String vPNclientSecret = _properties.getProperty("vpnclientsecret", "");
+        final String vPNserverUser = _properties.getProperty("vpnserveruser", "");
+        final String vPNserverSecret = _properties.getProperty("vpnserversecret", "");
+
         LOG.info("Using " + serverIPAddress + " as server IP address");
 
-        _raqetControll = new RaqetControl(initiatorName, serverIPAddress, new File(evidenceDirectory));
+        _raqetControll = new RaqetControl(initiatorName,
+                                          serverIPAddress,
+                                          vPNserverIPAddress,
+                                          vPNserversubnet,
+                                          vPNclientUser,
+                                          vPNclientSecret,
+                                          vPNserverUser,
+                                          vPNserverSecret,
+                                          new File(evidenceDirectory));
         _raqetControll.setOSPassword(_properties.getProperty("ospassword", UUID.randomUUID().toString()));
     }
 

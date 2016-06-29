@@ -1,2 +1,5 @@
 etc/raqet /etc/init.d/
 etc/raqet.conf /etc/
+etc/ipsec.conf.example.raqet /etc/
+etc/ipsec.secrets.example.raqet /etc/
+

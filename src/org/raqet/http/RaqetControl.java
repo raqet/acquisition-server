@@ -43,6 +43,12 @@ public class RaqetControl {
     private final List<ClientInfo> _clientList = new ArrayList<>();
 
     private final String _serverIPAddress;
+    private final String _VPNserverIPAddress;
+    private final String _VPNserversubnet;
+    private final String _VPNclientUser;
+    private final String _VPNclientSecret;
+    private final String _VPNserverUser;
+    private final String _VPNserverSecret;
 
     /** the password embedded in the live OS. The default value "secret" will be overwritten.
      */
@@ -51,10 +57,24 @@ public class RaqetControl {
     /** TODO: Move a lot of state from Main to this class, for now just reference Main.
      * @param evidenceDirectory */
 
-    public RaqetControl(final String initiatorName, final String serverIPAdress, final File evidenceDirectory) throws IScsiException {
+    public RaqetControl(final String initiatorName,
+                        final String serverIPAdress,
+                        final String vPNserverIPAddress,
+                        final String vPNserversubnet,
+                        final String vPNclientUser,
+                        final String vPNclientSecret,
+                        final String vPNserverUser,
+                        final String vPNserverSecret,
+                        final File evidenceDirectory) throws IScsiException {
         _remoteDeviceManager = new RemoteDeviceManager(initiatorName, evidenceDirectory);
         _diskInterface = new RaqetDiskDriver();
         _serverIPAddress = serverIPAdress;
+        _VPNserverIPAddress = vPNserverIPAddress;
+        _VPNserversubnet = vPNserversubnet;
+        _VPNclientUser = vPNclientUser;
+        _VPNclientSecret = vPNclientSecret;
+        _VPNserverUser = vPNserverUser;
+        _VPNserverSecret = vPNserverSecret;
 
         _investigationCaseDB = new InvestigationCaseDB(evidenceDirectory);
         // Create a default case to create auto generated Computer entry based on clients
@@ -208,7 +228,7 @@ public class RaqetControl {
                 device.setEvidenceBaseFileName(String.format("%04d-", device.getLun()) +
                     clientInfo.getClientid() + "_" + deviceName + ".dd");
             }
-
+            LOG.info("Published on path " + smbMountPath);
             _diskInterface.addRemoteDevice(_remoteDeviceManager, smbMountPath, device);
         }
     }
@@ -321,13 +341,31 @@ public class RaqetControl {
         final File temp = File.createTempFile("raqetos_", ".iso.tmp");
         final String path = temp.getAbsolutePath();
 
-        final ProcessBuilder pb = new ProcessBuilder("raqet", "-p", _osPassword,
+        final ProcessBuilder pb;
+        if (_VPNserverIPAddress == "") {
+            pb = new ProcessBuilder("raqet", "-p", _osPassword,
                                                      "--clientid", clientID,
                                                      "--server", "http://" + _serverIPAddress + ":5555",
                                                      "--output", path,
                                                      "--target", "iso",
                                                      "--plainiscsiinitiator", _serverIPAddress + "/32"
                                                                );
+        } else {
+            pb = new ProcessBuilder("raqet", "-p", _osPassword,
+                                    "--clientid", clientID,
+                                    "--server", "http://" + _serverIPAddress + ":5555",
+                                    "--output", path,
+                                    "--target", "iso",
+                                    "--vpnserveraddress", _VPNserverIPAddress,
+                                    "--vpnserversubnet", _VPNserversubnet,
+                                    "--vpnclientuser", _VPNclientUser,
+                                    "--vpnclientsecret", _VPNclientSecret,
+                                    "--vpnserveruser", _VPNserverUser,
+                                    "--vpnserversecret", _VPNserverSecret
+                );
+        }
+
+
         pb.directory(new File("/tmp/"));
         pb.inheritIO();
         final Process process = pb.start();
