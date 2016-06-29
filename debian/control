@@ -11,6 +11,7 @@ Package: raqetserver
 Architecture: all
 Depends: ${java:Depends}, ${misc:Depends}, raqetclient (>=0.1), libiscsi1 (>=1.15.1-1)
 Recommends: ${java:Recommends}
+Suggests: strongswan, strongswan-ike, strongswan-ikev2, strongswan-starter
 Description: Server for automated forensic acquisition and triage of remote clients
  This server will offer a webinterface that can be used to generate a client. This is an
  acquisition OS (PXE config, Disk-image or ISO) that will backconnect to this server. 
