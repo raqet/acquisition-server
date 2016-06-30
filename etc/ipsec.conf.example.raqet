@@ -14,28 +14,20 @@ conn %default
 	rekeymargin=3m
 	keyingtries=1
 	keyexchange=ikev1
- 
-conn raqet_old
-    keyexchange=ikev1
-    authby=xauthpsk
-    xauth=server
-    left=%defaultroute
-    leftsubnet=0.0.0.0/0
-    leftfirewall=yes
-    right=%any
-    rightsubnet=10.7.0.0/24
-    rightsourceip=10.7.0.2/24
-    auto=add
 
 #    rightdns=4.2.2.1
 
 conn raqet
+#left is the ip address on which the system can be reached.
+#When the server is only accessible using NAT configure the
+#internal IP here
 	left=10.199.99.2
 	leftsubnet=0.0.0.0/0
 	leftid=@acquisitionserver
 	leftauth=psk
 	leftfirewall=yes
 	right=%any
+#this defines the pool of ip addresses for the VPN pool.
 	rightsourceip=10.199.100.0/24
 	rightauth=psk
 	rightauth2=xauth
