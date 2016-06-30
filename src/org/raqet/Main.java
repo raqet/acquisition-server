@@ -183,6 +183,7 @@ public final class Main {
     }
 
     public static Main runMain(final String[] args) throws Exception {
+        LOG.info("Raqet version 0.1.3");
         if (args.length >= 1 && args[0].equals("-h")) {
             System.out.println("Syntax:  java -jar raqet.jar [-h] [[<username>:<password>@]<hostname>:<port>]");
             System.out.println();

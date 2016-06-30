@@ -1,3 +1,10 @@
+raqetserver (0.1.3) unstable; urgency=medium
+
+  * Small GUI changes
+  * OSX CIFS interoperability
+
+ -- Ruud Schramp <schramp@holmes.nl>  Tue, 25 Oct 2016 16:28:45 +0100
+
 raqetserver (0.1.2) unstable; urgency=medium
 
   * VPN Config support
