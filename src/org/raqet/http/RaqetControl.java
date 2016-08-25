@@ -331,7 +331,7 @@ public class RaqetControl {
         LOG.info("Ignoring diskInformation of unregistered client \"" + clientInfo.getClientid() + "\" (" + clientInfo.getHardwareid() + ")");
     }
 
-    public File getGetAcquisitionSystem(final String caseName, final String computerName) throws JsonParseException, JsonMappingException, IOException, InterruptedException {
+    public File getGetAcquisitionSystem(final String caseName, final String computerName,final String imageType) throws JsonParseException, JsonMappingException, IOException, InterruptedException {
         final ComputerDbEntry computerDbEntry = _investigationCaseDB.getComputer(caseName, computerName);
         final String clientID = computerDbEntry.getClientId();
 //        ./authoring/raqet -p secret --clientid testingclient --server http://192.168.13.1:5555 \
@@ -347,7 +347,7 @@ public class RaqetControl {
                                                      "--clientid", clientID,
                                                      "--server", "http://" + _serverIPAddress + ":5555",
                                                      "--output", path,
-                                                     "--target", "iso",
+                                                     "--target", imageType,
                                                      "--plainiscsiinitiator", _serverIPAddress + "/32"
                                                                );
         } else {
@@ -355,7 +355,7 @@ public class RaqetControl {
                                     "--clientid", clientID,
                                     "--server", "http://" + _serverIPAddress + ":5555",
                                     "--output", path,
-                                    "--target", "iso",
+                                    "--target", imageType,
                                     "--vpnserveraddress", _VPNserverIPAddress,
                                     "--vpnserversubnet", _VPNserversubnet,
                                     "--vpnclientuser", _VPNclientUser,

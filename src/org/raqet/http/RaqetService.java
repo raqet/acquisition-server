@@ -199,18 +199,25 @@ public final class RaqetService {
     }
 
     @GET
-    @Path("/json/cases/{caseName}/computers/{computerName}/acquisitionsystem")
+    @Path("/json/cases/{caseName}/computers/{computerName}/acquisitionsystem/{type}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public Response jsonGetAcquisitionSystem(@PathParam("caseName") final String caseName, @PathParam("computerName") final String computerName) {
-        try {
-            final File osfile = _raqetControll.getGetAcquisitionSystem(caseName, computerName);
-            return Response.ok(osfile, MediaType.APPLICATION_OCTET_STREAM)
-                .header("Content-Disposition", "attachment; filename=\"" + caseName + "_" + computerName + ".iso\"")
-                .build();
+    public Response jsonGetAcquisitionSystem(@PathParam("caseName") final String caseName, @PathParam("computerName") final String computerName, @PathParam("type") final String imageType) {
+        if (imageType.equals("pxezip") || imageType.equals("iso")) {
+            String extension = "iso";
+            if (imageType.equals("pxezip")) extension = "zip";
+            try {
+                final File osfile = _raqetControll.getGetAcquisitionSystem(caseName, computerName, imageType);
+                return Response.ok(osfile, MediaType.APPLICATION_OCTET_STREAM)
+                    .header("Content-Disposition", "attachment; filename=\"" + caseName + "_" + computerName + "." + extension + "\"")
+                    .build();
+            }
+            catch (final Exception e) {
+                LOG.info("Failed to create acquisition OS for  " + caseName + " computer " + computerName, e);
+                return null;
+            }
+        } else {
+                LOG.info("Invalid image OS type " +imageType+ " for  " + caseName + " computer " + computerName);
         }
-        catch (final Exception e) {
-            LOG.info("Failed to create acquisition OS for  " + caseName + " computer " + computerName, e);
-            return null;
-        }
+        return null;
     }
 }
