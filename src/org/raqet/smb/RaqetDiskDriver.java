@@ -124,7 +124,6 @@ public class RaqetDiskDriver extends JavaFileDiskDriver implements DiskInterface
 
     @Override
     public SearchContext startSearch(final SrvSession sess, final TreeConnection tree, final String searchPath, final int attrib) throws FileNotFoundException {
-    	LOG.info("search" + searchPath);
     	SearchContext searchContext;
     	try {
     		searchContext = super.startSearch(sess, tree, searchPath, attrib);
@@ -133,29 +132,19 @@ public class RaqetDiskDriver extends JavaFileDiskDriver implements DiskInterface
     	}
         
         int lastSlash = searchPath.lastIndexOf("\\");
-    	LOG.info("search: lastSlash " + lastSlash);
         if (lastSlash < 1) {
         	return searchContext;
         }
         final String path = searchPath.substring(0, lastSlash+1);
-    	LOG.info("search: path " + path);
         final String pattern = searchPath.substring(lastSlash+1);
-    	LOG.info("search: pattern " + pattern);
         final RaqetSearchContext raqetSearchContext = new RaqetSearchContext(searchContext, path);
         
         final PseudoFileList pseudoFileList = _pseudoFileLists.get(path);
         if (pseudoFileList == null) {
-        	LOG.info("search: no pseudolist");
         	return searchContext;
-        } else {
-        	LOG.info("search: pseudolist len " + pseudoFileList.numberOfFiles());
-        	for (int i=0; i < pseudoFileList.numberOfFiles(); i++) {
-            	LOG.info("search pseudolist name " + pseudoFileList.getFileAt(i).getFileName());
-        	}
         }
         
         if (pattern.equals("*")) {
-        	LOG.info("search: set pseudoList");
             raqetSearchContext.setPseudoFileList(pseudoFileList);
         } else {
             final PseudoFileList newPseudoFileList = new PseudoFileList();
@@ -163,10 +152,8 @@ public class RaqetDiskDriver extends JavaFileDiskDriver implements DiskInterface
         	for (int i=0; i < pseudoFileList.numberOfFiles(); i++) {
         		PseudoFile pseudoFile = pseudoFileList.getFileAt(i);
         		if (pseudoFile.getFileName().equals(pattern)) {
-                	LOG.info("search: add localfilename " + pseudoFile.getFileName());
         			newPseudoFileList.addFile(pseudoFile);
         		} else {
-                	LOG.info("search: not add localfilename " + pseudoFile.getFileName());
         		}
         	}
         	if ((searchContext == null) && 
