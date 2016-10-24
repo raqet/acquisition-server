@@ -22,11 +22,13 @@ import org.alfresco.jlan.server.filesys.pseudo.PseudoFile;
 import org.alfresco.jlan.server.filesys.pseudo.PseudoFileList;
 import org.alfresco.jlan.server.filesys.pseudo.PseudoNetworkFile;
 import org.alfresco.jlan.smb.server.disk.JavaFileDiskDriver;
+import org.apache.log4j.Logger;
 import org.raqet.remote.RemoteDeviceInfo;
 import org.raqet.remote.RemoteDeviceManager;
 
 
 public class RaqetDiskDriver extends JavaFileDiskDriver implements DiskInterface {
+	private static final Logger LOG = Logger.getLogger(RaqetDiskDriver.class);
     private final Map<String, PseudoFileList> _pseudoFileLists;
 
     public RaqetDiskDriver() {
@@ -122,14 +124,58 @@ public class RaqetDiskDriver extends JavaFileDiskDriver implements DiskInterface
 
     @Override
     public SearchContext startSearch(final SrvSession sess, final TreeConnection tree, final String searchPath, final int attrib) throws FileNotFoundException {
-        final SearchContext searchContext = super.startSearch(sess, tree, searchPath, attrib);
-        if (!searchPath.endsWith("\\*")) {
-            return searchContext;
+    	LOG.info("search" + searchPath);
+    	SearchContext searchContext;
+    	try {
+    		searchContext = super.startSearch(sess, tree, searchPath, attrib);
+    	} catch (FileNotFoundException exception) {
+    		searchContext = null;
+    	}
+        
+        int lastSlash = searchPath.lastIndexOf("\\");
+    	LOG.info("search: lastSlash " + lastSlash);
+        if (lastSlash < 1) {
+        	return searchContext;
         }
-
-        final String path = searchPath.substring(0, (searchPath.length() - 1));
+        final String path = searchPath.substring(0, lastSlash+1);
+    	LOG.info("search: path " + path);
+        final String pattern = searchPath.substring(lastSlash+1);
+    	LOG.info("search: pattern " + pattern);
         final RaqetSearchContext raqetSearchContext = new RaqetSearchContext(searchContext, path);
-        raqetSearchContext.setPseudoFileList(_pseudoFileLists.get(path));
+        
+        final PseudoFileList pseudoFileList = _pseudoFileLists.get(path);
+        if (pseudoFileList == null) {
+        	LOG.info("search: no pseudolist");
+        	return searchContext;
+        } else {
+        	LOG.info("search: pseudolist len " + pseudoFileList.numberOfFiles());
+        	for (int i=0; i < pseudoFileList.numberOfFiles(); i++) {
+            	LOG.info("search pseudolist name " + pseudoFileList.getFileAt(i).getFileName());
+        	}
+        }
+        
+        if (pattern.equals("*")) {
+        	LOG.info("search: set pseudoList");
+            raqetSearchContext.setPseudoFileList(pseudoFileList);
+        } else {
+            final PseudoFileList newPseudoFileList = new PseudoFileList();
+            newPseudoFileList.addFile(new MemoryPseudoFile("123.txt", new byte[]{1, 2, 3}));
+        	for (int i=0; i < pseudoFileList.numberOfFiles(); i++) {
+        		PseudoFile pseudoFile = pseudoFileList.getFileAt(i);
+        		if (pseudoFile.getFileName().equals(pattern)) {
+                	LOG.info("search: add localfilename " + pseudoFile.getFileName());
+        			newPseudoFileList.addFile(pseudoFile);
+        		} else {
+                	LOG.info("search: not add localfilename " + pseudoFile.getFileName());
+        		}
+        	}
+        	if ((searchContext == null) && 
+        		(newPseudoFileList.numberOfFiles() == 1)) {
+        		throw new FileNotFoundException();
+        	}
+            raqetSearchContext.setPseudoFileList(newPseudoFileList);
+        }
+        
 
         return raqetSearchContext;
     }

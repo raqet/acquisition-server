@@ -16,11 +16,14 @@ public class RaqetSearchContext extends PseudoSearchContext {
     public RaqetSearchContext(final SearchContext searchContext, final String path) {
         super(path);
 
-        _searchContext = argNotNull("searchContext", searchContext);
+        _searchContext = searchContext;
     }
 
     @Override
     public int getResumeId() {
+    	if (_searchContext == null) {
+            return super.getResumeId();
+    	}
         return super.getResumeId() + _searchContext.getResumeId();
     }
 
@@ -29,6 +32,9 @@ public class RaqetSearchContext extends PseudoSearchContext {
         if (hasMorePseudoFiles()) {
             return true;
         }
+    	if (_searchContext == null) {
+            return false;
+    	}
 
         return _searchContext.hasMoreFiles();
     }
@@ -38,6 +44,9 @@ public class RaqetSearchContext extends PseudoSearchContext {
         if (hasMorePseudoFiles()) {
             return nextPseudoFileInfo(info);
         }
+    	if (_searchContext == null) {
+            return false;
+    	}
 
         return _searchContext.nextFileInfo(info);
     }
@@ -47,6 +56,9 @@ public class RaqetSearchContext extends PseudoSearchContext {
         if (hasMorePseudoFiles()) {
             return nextPseudoFileName();
         }
+    	if (_searchContext == null) {
+            return null;
+    	}
 
         return _searchContext.nextFileName();
     }
@@ -56,6 +68,9 @@ public class RaqetSearchContext extends PseudoSearchContext {
         if (restartAtPseudoFile(resumeId)) {
             return true;
         }
+    	if (_searchContext == null) {
+            return false;
+    	}
 
         return _searchContext.restartAt(resumeId - super.getResumeId());
     }
@@ -65,6 +80,9 @@ public class RaqetSearchContext extends PseudoSearchContext {
         if (restartAtPseudoFile(info)) {
             return true;
         }
+    	if (_searchContext == null) {
+            return false;
+    	}
 
         return _searchContext.restartAt(info);
     }
