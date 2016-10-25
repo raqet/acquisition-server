@@ -1,4 +1,3 @@
-<a ui-sref="newComputer({casename:caseobject.urlcasename})" class="btn-primary btn-lg nodecoration">Add New Computer</a>
 <table class="table casetable">
   <tr>
     <td><h3>Details for {{caseobject.casename}}</h3></td>
@@ -16,7 +15,10 @@
 <div>
   <a class="btn btn-primary" ui-sref="editCase({casename:caseobject.urlcasename})">Edit</a>
 </div>
-
+<hr class="separator">
+<div>
+  <a ui-sref="newComputer({casename:caseobject.urlcasename})" class="btn-primary btn-lg nodecoration">Add New Computer</a>
+</div>
 
 <table class="table casetable">
   <tr>
