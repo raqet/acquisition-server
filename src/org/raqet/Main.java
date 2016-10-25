@@ -189,11 +189,9 @@ public final class Main {
             System.out.println("Example:");
             System.out.println("  java -jar raqet.jar");
             System.out.println("");
-            //@TODO
-            System.out.println("Add targets using http:");
-            System.out.println("  wget http://localhost:5555/[[<username>:<password>@]<hostname>:<port>] -O -");
-            System.out.println("Example:");
-            System.out.println("  wget http://localhost:5555/theuser:thepasswd@10.1.1.10:3260 -O -");
+            System.out.println("Point browser to http://localhost:5556/gui/");
+            System.out.println("Exact URL may be different based on content of raqet.conf");
+            System.out.println("raqet.conf is searched in the working directory and secondly in /etc/raqet.conf");
             System.exit(1);
         }
 
@@ -206,9 +204,6 @@ public final class Main {
 
         final Main main = new Main();
         main.start();
-        for (final String target : args) {
-            main._raqetControll.addRemoteDevice(target);
-        }
 
         LOG.info("Startup thread ended.");
         return main;
