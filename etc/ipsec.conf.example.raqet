@@ -4,9 +4,11 @@
 
 # Sample VPN connections
 
-#config setup
+#The uniqueids flag "never" allows multiple clients to share
+#the same identity
+config setup
+    uniqueids=never
 #    cachecrls=yes
-#    uniqueids=yes
 
 conn %default
 	ikelifetime=60m
@@ -17,17 +19,17 @@ conn %default
 
 #    rightdns=4.2.2.1
 
-conn raqet
 #left is the ip address on which the system can be reached.
 #When the server is only accessible using NAT configure the
-#internal IP here
+#internal IP for the field "left" 
+#"rightsourceip" defines the pool of ip addresses for the VPN pool.
+conn raqet
 	left=10.199.99.2
 	leftsubnet=0.0.0.0/0
 	leftid=@acquisitionserver
 	leftauth=psk
 	leftfirewall=yes
 	right=%any
-#this defines the pool of ip addresses for the VPN pool.
 	rightsourceip=10.199.100.0/24
 	rightauth=psk
 	rightauth2=xauth
