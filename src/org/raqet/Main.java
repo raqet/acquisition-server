@@ -64,7 +64,7 @@ public final class Main {
             LOG.error("Error determining local IP address", e);
             machineIP = "127.0.0.1";
         }
-        final String serverIPAddress = _properties.getProperty("serverip", machineIP + ":5555");
+        final String serverIPAddress = _properties.getProperty("serverip", machineIP );
         final String evidenceDirectory = _properties.getProperty("evidencedirectory", EVIDENCE_DIRECTORY);
         final String initiatorName = _properties.getProperty("initiatorname", INITIATOR_NAME);
 
